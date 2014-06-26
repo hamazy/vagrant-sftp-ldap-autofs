@@ -1,0 +1,22 @@
+---
+- name: upgrade all packages
+  yum: name=* state=latest
+
+- name: install the latest man package
+  yum: name=man state=latest
+
+- name: install the latest ed package
+  yum: name=ed state=latest
+
+- name: install the latest avahi package
+  yum: name=avahi state=latest
+
+- name: install the latest ntp package
+  yum: name=ntp state=latest
+  notify: restart ntpd
+
+- name: install the latest libselinux-python package
+  yum: name=libselinux-python state=latest
+
+- authorized_key: user=vagrant
+                  key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRBdTxEPqF4NTBocTcVipsrXqVXPpM8ZfUxK2/SlYh2hLefPAnfz4eFw72dRUG8JnXpvQu1de9DCKL9s51XbZZ0B1Clbvn8Rx9f4zhK+SReFRk4E1jLPnZKwrfK0/wb723QidLDYpNAtE7wWKY/JyMcfhteLLf+MpmbM/LJgPsrPsSOIIw3xOqWhOLQWe6wPHgGLKLisR+yGMSDi6l3EzpdKRxRQJMot3u0rY4yLlf5YEIgXPWwZVlAHVV7hFlQCZwsBcs2EPKZ/bEodvAdzGKsiBWvuJOGpbOKewYkuW3ws5CKXIXj6eRrTjM2Uey9ab/o2LLHpiDrwytPrk/ho69 hamazy@Suguru-Hamazakis-MacBook-Air-2.local"
