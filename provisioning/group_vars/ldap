@@ -1,0 +1,10 @@
+---
+config_rootdn_password: configsecret
+domain_rootdn_password: domainsecret
+
+topdomain: com
+subdomain: suguruhamazaki
+domain_root_cn: root
+
+domain_suffix: dc={{ subdomain }},dc={{ topdomain }}
+domain_root_dn: cn={{ domain_root_cn }},{{ domain_suffix }}

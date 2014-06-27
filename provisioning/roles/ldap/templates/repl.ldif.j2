@@ -1,0 +1,40 @@
+{% if check_olcserververid_attribute.rc == 1 %}
+# global configuration options
+dn: cn=config
+changetype: modify
+add: olcServerID
+{% if inventory_hostname == "ldap1" %}
+olcServerID: 1
+{% else %}
+olcServerID: 2
+{% endif %}
+{% endif %}
+
+# databale options
+dn: olcDatabase={2}bdb,cn=config
+changetype: modify
+{% if check_olcsyscrepl_attribute.rc == 0 %}
+delete: olcSyncrepl
+-
+{% endif %}
+add: olcSyncrepl
+{% if inventory_hostname == "ldap1" %}
+olcSyncrepl: rid=1 provider=ldap://{{ hostvars['ldap2']['ansible_default_ipv4']['address']}}:389 searchbase="{{ domain_suffix }}" type=refreshAndPersist retry="60 5 300 +" bindmethod=simple binddn="{{ domain_root_dn }}" credentials={{ domain_rootdn_password }} schemachecking=on
+{% else %}
+olcSyncrepl: rid=1 provider=ldap://{{ hostvars['ldap1']['ansible_default_ipv4']['address']}}:389 searchbase="{{ domain_suffix }}" type=refreshAndPersist retry="60 5 300 +" bindmethod=simple binddn="{{ domain_root_dn }}" credentials={{ domain_rootdn_password }} schemachecking=on
+{% endif %}
+-
+{% if check_olcmirrormode_attribute.rc == 0 %}
+delete: olcMirrorMode
+-
+{% endif %}
+add: olcMirrorMode
+olcMirrorMode: TRUE
+
+{% if check_olcoverlay_entry.rc == 1 %}
+dn: olcOverlay=syncprov,olcDatabase={2}bdb,cn=config
+changetype: add
+objectClass: olcOverlayConfig
+objectClass: olcSyncProvConfig
+olcOverlay: syncprov
+{% endif %}

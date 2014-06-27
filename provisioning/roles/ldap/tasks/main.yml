@@ -1,0 +1,88 @@
+---
+- name: install the latest necessary packages
+  yum: name={{ item }} state=latest
+  with_items:
+    - openldap-servers
+    - openldap-clients
+
+- name: set the correct owner and group of /var/lib/ldap
+  file: path=/var/lib/ldap group=ldap owner=ldap recurse=yes
+
+- name: generate a password hash for Root DN of cn=config
+  command: /usr/sbin/slappasswd -s {{ config_rootdn_password }}
+  register: config_rootdn_password_hash
+
+- name: generate a password hash for Root DN of domain tree
+  command: /usr/sbin/slappasswd -s {{ domain_rootdn_password }}
+  register: domain_rootdn_password_hash
+
+- set_fact: colon=":"
+
+- name: remove old olcRootPW from olcDatabase={0}config.ldif
+  lineinfile: dest="/etc/openldap/slapd.d/cn=config/olcDatabase={0}config.ldif"
+              state=absent
+              regexp="^olcRootPW"
+  notify: restart slapd
+
+- name: add olcRootPW to olcDatabase={0}config.ldif
+  lineinfile: dest="/etc/openldap/slapd.d/cn=config/olcDatabase={0}config.ldif"
+              insertafter="^olcRootDN"
+              line="olcRootPW{{colon}} {{ config_rootdn_password_hash.stdout }}"
+  notify: restart slapd
+
+- name: prepare DB_CONFIG file
+  copy: src=DB_CONFIG dest=/var/lib/ldap/DB_CONFIG owner=ldap group=ldap mode=0644
+  notify: restart slapd
+
+- name: start slapd
+  service: name=slapd enabled=yes state=started
+
+- name: check if olcRootPW for olcDatabase={2}bdb,cn=config is set
+  shell: /usr/bin/ldapsearch -x -D cn=config -w {{ config_rootdn_password }} -b cn=config "(&(olcDatabase={2}bdb)(olcRootPW=*))" | grep "numEntries"
+  register: check_domain_rootdn_password
+  failed_when: check_domain_rootdn_password.rc not in [0, 1]
+
+- name: check if olcAccess for olcDatabase={2}bdb,cn=config is set
+  shell: /usr/bin/ldapsearch -x -D cn=config -w {{ config_rootdn_password }} -b cn=config "(&(olcDatabase={2}bdb)(olcAccess=*))" | grep "numEntries"
+  register: check_olcaccess_attribute
+  failed_when: check_olcaccess_attribute.rc not in [0, 1]
+
+- name: check if cn=module{0},cn=config exists
+  shell: /usr/bin/ldapsearch -x -D cn=config -w {{ config_rootdn_password }} -b cn=config "cn=module{0}" | grep "numEntries"
+  register: check_module0_entry
+  failed_when: check_module0_entry.rc not in [0, 1]
+
+- name: copy ldif file to init config
+  template: src=init.ldif.j2 dest=/tmp/init.ldif owner=root group=root mode=600 force=yes
+
+- name: initialize config
+  command: /usr/bin/ldapmodify -x -D cn=config -w {{ config_rootdn_password }} -f /tmp/init.ldif
+
+- name: restart slapd
+  service: name=slapd enabled=yes state=restarted
+
+- name: check if olcServerID is set on cn=config
+  shell: /usr/bin/ldapsearch -x -D cn=config -w {{ config_rootdn_password }} -b cn=config "(&(cn=config)(olcServerID=*))" | grep "numEntries"
+  register: check_olcserververid_attribute
+  failed_when: check_olcserververid_attribute.rc not in [0, 1]
+
+- name: check if olcSyncrepl is set on olcDatabase={2}bdb,cn=config
+  shell: /usr/bin/ldapsearch -x -D cn=config -w {{ config_rootdn_password }} -b cn=config "(&(olcDatabase={2}bdb)(olcSyncrepl=*))" | grep "numEntries"
+  register: check_olcsyscrepl_attribute
+  failed_when: check_olcsyscrepl_attribute.rc not in [0, 1]
+
+- name: check if olcMirrorMode is set on olcDatabase={2}bdb,cn=config
+  shell: /usr/bin/ldapsearch -x -D cn=config -w {{ config_rootdn_password }} -b cn=config "(&(olcDatabase={2}bdb)(olcMirrorMode=*))" | grep "numEntries"
+  register: check_olcmirrormode_attribute
+  failed_when: check_olcmirrormode_attribute.rc not in [0, 1]
+
+- name: check if olcOverlay=syncprov,olcDatabase={2}bdb,cn=config exists
+  shell: /usr/bin/ldapsearch -x -D cn=config -w {{ config_rootdn_password }} -b "olcDatabase={2}bdb,cn=config" "olcOverlay=syncprov" | grep "numEntries"
+  register: check_olcoverlay_entry
+  failed_when: check_olcoverlay_entry.rc not in [0, 1]
+
+- name: copy ldif file to configure replication
+  template: src=repl.ldif.j2 dest=/tmp/repl.ldif owner=root group=root mode=600 force=yes
+
+- name: configure replication
+  shell: /usr/bin/ldapmodify -x -D cn=config -w {{ config_rootdn_password }} -f /tmp/repl.ldif

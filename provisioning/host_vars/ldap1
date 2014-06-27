@@ -1,0 +1,12 @@
+users_ou: users
+groups_ou: groups
+
+my_group: sftpusers
+my_group_gid_number: 1000
+
+my_account: hamazy
+my_account_uid_number: 1000
+my_sn: Hamazaki
+my_cn: Suguru
+my_mail: hamazy@suguruhamazaki.com
+my_password: accountsecret

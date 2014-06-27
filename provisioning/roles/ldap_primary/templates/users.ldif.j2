@@ -1,0 +1,83 @@
+{% if check_top_entry.rc == 1 %}
+dn: {{domain_suffix}}
+objectClass: top
+objectClass: dcObject
+objectClass: organization
+o: {{ subdomain }}.{{ topdomain }}
+dc: {{ subdomain }}
+{% endif %}
+
+{% if check_root_entry.rc == 1 %}
+dn: {{ domain_root_dn }}
+objectClass: organizationalRole
+cn: {{ domain_root_cn }}
+{% endif %}
+
+{% if check_users_entry.rc == 1 %}
+dn: ou={{ users_ou }},{{ domain_suffix }}
+objectclass: organizationalUnit
+ou: {{ users_ou }}
+{% endif %}
+
+{% if check_groups_entry.rc == 1 %}
+dn: ou={{ groups_ou }},{{ domain_suffix }}
+objectclass: organizationalUnit
+ou: {{ groups_ou }}
+{% endif %}
+
+{% if check_my_group_entry.rc == 1 %}
+dn: cn={{ my_group }},ou={{ groups_ou }},{{ domain_suffix }}
+objectClass: posixGroup
+cn: {{ my_group }}
+gidNumber: {{ my_group_gid_number }}
+{% endif %}
+
+{% if check_my_account_entry.rc == 1 %}
+dn: uid={{ my_account }},ou={{ users_ou }},{{ domain_suffix }}
+objectclass: posixAccount
+objectclass: inetOrgPerson
+sn: {{ my_sn }}
+cn: {{ my_cn }}
+displayName: {{ my_cn }} {{ my_sn }}
+uid: {{ my_account }}
+uidNumber: {{ my_account_uid_number }}
+gidNumber: {{ my_group_gid_number }}
+homeDirectory: /{{ my_account }}
+loginShell: /bin/bash
+userPassword: {{ my_account_password_hash.stdout }}
+mail: {{ my_mail }}
+{% endif %}
+
+{% if check_master_map_entry.rc == 1 %}
+# auto.master
+dn: nisMapName=auto.master,{{ domain_suffix }}
+objectClass: top
+objectClass: nisMap
+nisMapName: auto.master
+{% endif %}
+
+{% if check_my_group_map_entry.rc == 1 %}
+# auto.{{ my_group }}
+dn: nisMapName=auto.{{ my_group }},{{ domain_suffix }}
+objectClass: top
+objectClass: nisMap
+nisMapName: auto.{{ my_group }}
+{% endif %}
+
+{% if check_my_group_entry_entry.rc == 1 %}
+# /{{ my_group }} auto.{{ my_group }}
+dn: cn=/{{ my_group }},nisMapName=auto.master,{{ domain_suffix }}
+objectClass: nisObject
+cn: /{{ my_group }}
+nisMapName: auto.master
+nisMapEntry: auto.{{ my_group }}
+{% endif %}
+
+{% if check_my_account_entry_entry.rc == 1 %}
+# {{ my_account }} -fstype=nfs4,rw {{ hostvars['web']['ansible_default_ipv4']['address'] }}:/var/www/html
+dn: cn={{ my_account }},nisMapName=auto.{{ my_group }},{{ domain_suffix }}
+objectClass: nisObject
+cn: {{ my_account }}
+nisMapName: auto.{{ my_group }}
+nisMapEntry: -fstype=nfs4,rw {{ hostvars['web']['ansible_default_ipv4']['address'] }}:/var/www/html
+{% endif %}

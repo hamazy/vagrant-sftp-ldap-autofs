@@ -3,3 +3,13 @@
   sudo: yes
   roles:
     - basic
+
+- hosts: ldap
+  sudo: yes
+  roles:
+    - ldap
+
+- hosts: ldap1
+  sudo: yes
+  roles:
+    - ldap_primary

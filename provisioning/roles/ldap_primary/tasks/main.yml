@@ -1,0 +1,60 @@
+---
+- name: check if top object exists
+  shell: /usr/bin/ldapsearch -x -D {{ domain_root_dn }} -w {{ domain_rootdn_password }} -b {{ domain_suffix }} "dc={{ subdomain }}" | grep "numEntries"
+  register: check_top_entry
+  failed_when: check_top_entry.rc not in [0, 1]
+
+- name: check if root exists
+  shell: /usr/bin/ldapsearch -x -D {{ domain_root_dn }} -w {{ domain_rootdn_password }} -b {{ domain_suffix }} "cn={{ domain_root_cn }}" | grep "numEntries"
+  register: check_root_entry
+  failed_when: check_root_entry.rc not in [0, 1]
+
+- name: check if Users exists
+  shell: /usr/bin/ldapsearch -x -D {{ domain_root_dn }} -w {{ domain_rootdn_password }} -b {{ domain_suffix }} "ou={{ users_ou }}" | grep "numEntries"
+  register: check_users_entry
+  failed_when: check_users_entry.rc not in [0, 1]
+
+- name: check if Groups exists
+  shell: /usr/bin/ldapsearch -x -D {{ domain_root_dn }} -w {{ domain_rootdn_password }} -b {{ domain_suffix }} "ou={{ groups_ou }}" | grep "numEntries"
+  register: check_groups_entry
+  failed_when: check_groups_entry.rc not in [0, 1]
+
+- name: check if my group exists
+  shell: /usr/bin/ldapsearch -x -D {{ domain_root_dn }} -w {{ domain_rootdn_password }} -b ou={{ groups_ou }},{{ domain_suffix }} "cn={{ my_group }}" | grep "numEntries"
+  register: check_my_group_entry
+  failed_when: check_my_group_entry.rc not in [0, 1]
+
+- name: check if my account exists
+  shell: /usr/bin/ldapsearch -x -D {{ domain_root_dn }} -w {{ domain_rootdn_password }} -b ou={{ users_ou }},{{ domain_suffix }} "uid={{ my_account }}" | grep "numEntries"
+  register: check_my_account_entry
+  failed_when: check_my_account_entry.rc not in [0, 1]
+
+- name: check if master map exists
+  shell: /usr/bin/ldapsearch -x -D {{ domain_root_dn }} -w {{ domain_rootdn_password }} -b {{ domain_suffix }} "nisMapName=auto.master" | grep "numEntries"
+  register: check_master_map_entry
+  failed_when: check_master_map_entry.rc not in [0, 1]
+
+- name: check if map for my group exists
+  shell: /usr/bin/ldapsearch -x -D {{ domain_root_dn }} -w {{ domain_rootdn_password }} -b {{ domain_suffix }} "nisMapName=auto.{{ my_group }}" | grep "numEntries"
+  register: check_my_group_map_entry
+  failed_when: check_my_group_map_entry.rc not in [0, 1]
+
+- name: check if my group map entry exists
+  shell: /usr/bin/ldapsearch -x -D {{ domain_root_dn }} -w {{ domain_rootdn_password }} -b nisMapName=auto.master,{{ domain_suffix }} "cn=/{{ my_group }}" | grep "numEntries"
+  register: check_my_group_entry_entry
+  failed_when: check_my_group_entry_entry.rc not in [0, 1]
+
+- name: check if my account entry entry exists
+  shell: /usr/bin/ldapsearch -x -D {{ domain_root_dn }} -w {{ domain_rootdn_password }} -b nisMapName=auto.{{ my_group }},{{ domain_suffix }} "cn={{ my_account }}" | grep "numEntries"
+  register: check_my_account_entry_entry
+  failed_when: check_my_account_entry_entry.rc not in [0, 1]
+
+- name: generate a password hash for my account
+  command: /usr/sbin/slappasswd -h "{CRYPT}" -s {{ my_password }}
+  register: my_account_password_hash
+
+- name: copy ldif file to add users data
+  template: src=users.ldif.j2 dest=/tmp/users.ldif owner=root group=root mode=600 force=yes
+
+- name: add users data
+  shell: /usr/bin/ldapadd -x -D {{ domain_root_dn }} -w {{ domain_rootdn_password }} -f /tmp/users.ldif

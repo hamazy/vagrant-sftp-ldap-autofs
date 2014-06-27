@@ -1,0 +1,39 @@
+dn: olcDatabase={2}bdb,cn=config
+changetype: modify
+replace: olcRootDN
+olcRootDN: {{ domain_root_dn }}
+-
+replace: olcSuffix
+olcSuffix: {{ domain_suffix }}
+-
+{% if check_domain_rootdn_password.rc == 0 %}
+delete: olcRootPW
+-
+{% endif %}
+add: olcRootPW
+olcRootPW: {{ domain_rootdn_password_hash.stdout }}
+-
+{% if check_olcaccess_attribute.rc == 0 %}
+delete: olcAccess
+-
+{% endif %}
+add: olcAccess
+olcAccess: to attrs=userPassword
+  by anonymous auth
+  by dn="{{ domain_root_dn }}" read
+  by * none
+olcAccess: to *
+  by self read
+  by dn="{{ domain_root_dn }}" read
+  by * none
+
+{% if check_module0_entry.rc == 1 %}
+dn: cn=module{0},cn=config
+changetype: add
+objectClass: olcModuleList
+objectClass: olcConfig
+objectClass: top
+cn: module{0}
+olcModulePath: /usr/lib64/openldap
+olcModuleLoad: syncprov
+{% endif %}
