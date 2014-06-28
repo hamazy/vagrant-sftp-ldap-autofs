@@ -18,3 +18,9 @@
   sudo: yes
   roles:
     - sftp
+
+- hosts: web
+  sudo: yes
+  roles:
+    - web
+    - nfs

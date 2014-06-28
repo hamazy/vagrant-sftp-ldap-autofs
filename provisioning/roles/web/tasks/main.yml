@@ -1,0 +1,12 @@
+---
+- name: install the latest necessary packages
+  yum: name=httpd state=latest
+
+- name: copy httpd.conf
+  template: src=httpd.conf.j2 dest=/etc/httpd/conf/httpd.conf owner=root group=root mode=0644 force=yes
+
+- name: change owner and group of /var/www/html
+  file: path=/var/www/html owner=apache group=apache mode=0755 recurse=yes
+
+- name: restart httpd
+  service: name=httpd enabled=yes state=restarted

@@ -1,0 +1,12 @@
+---
+- name: instal the latest necessary packages
+  yum: name=nfs-utils state=latest
+
+- name: copy exports file
+  template: src=exports.j2 dest=/etc/exports owner=root group=root mode=0644 force=yes
+
+- name: restart the necessary service
+  service: name={{ item }} enabled=yes state=restarted
+  with_items:
+    - rpcbind
+    - nfs
