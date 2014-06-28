@@ -13,3 +13,8 @@
   sudo: yes
   roles:
     - ldap_primary
+
+- hosts: sftp
+  sudo: yes
+  roles:
+    - sftp

@@ -1,0 +1,38 @@
+---
+- name: install the latest necessary packages
+  yum: name={{ item }} state=latest
+  with_items:
+    - openldap-clients
+    - nss-pam-ldapd
+    - nscd
+    - nfs-utils
+    - autofs
+
+- name: configurate authentication
+  command: /usr/sbin/authconfig --update --enableldap --enableldapauth --ldapserver=ldap://{{ hostvars['ldap1']['ansible_default_ipv4']['address'] }}:389,ldap://{{ hostvars['ldap2']['ansible_default_ipv4']['address'] }}:389 --ldapbasedn={{ domain_suffix }} --enablemkhomedir
+
+- name: copy nslcd.conf
+  template: src=nslcd.conf.j2 dest=/etc/nslcd.conf owner=root group=root mode=0600 force=yes
+
+- name: copy autofs config file
+  template: src=autofs.j2 dest=/etc/sysconfig/autofs owner=root group=root mode=0644 force=yes
+
+- name: copy autofs_ldap_auth.conf
+  template: src=autofs_ldap_auth.conf.j2 dest=/etc/autofs_ldap_auth.conf owner=root group=root mode=0600 force=yes
+
+- name: create a base directory for sftp users
+  file: path=/{{ my_group }} state=directory owner=root group=root mode=0755
+
+- name: copy sshd_config
+  template: src=sshd_config.j2 dest=/etc/ssh/sshd_config  owner=root group=root mode=0600 force=yes
+
+- name: allow chroot user read and write to his home directory
+  command: /usr/sbin/setsebool -P ssh_chroot_rw_homedirs on
+
+- name: restart services
+  service: name={{ item }} enabled=yes state=restarted
+  with_items:
+    - nslcd
+    - autofs
+    - sshd
+
