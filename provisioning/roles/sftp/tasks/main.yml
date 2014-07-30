@@ -9,7 +9,16 @@
     - autofs
 
 - name: configurate authentication
-  command: /usr/sbin/authconfig --update --enableldap --enableldapauth --ldapserver=ldap://ldap1.local:389,ldap://ldap2.local:389 --ldapbasedn={{ domain_suffix }} --enablemkhomedir
+  command: /usr/sbin/authconfig --update --passalgo=sha512 --enableldap --enableldapauth --ldapserver=ldap://ldap1.local:389,ldap://ldap2.local:389 --ldapbasedn={{ domain_suffix }} --enablemkhomedir
+
+- name: configure bind DN in pam_ldap.conf
+  lineinfile: dest=/etc/pam_ldap.conf regexp='^binddn ' line="binddn {{ domain_root_dn }}" state=present
+
+- name: configure bind password in pam_ldap.conf
+  lineinfile: dest=/etc/pam_ldap.conf regexp='^bindpw' line="bindpw {{ domain_rootdn_password }}" state=present
+
+- name: configure password change protocol in pam_ldap.conf
+  lineinfile: dest=/etc/pam_ldap.conf regexp='^pam_password' line="pam_password exop" state=present
 
 - name: copy nslcd.conf
   template: src=nslcd.conf.j2 dest=/etc/nslcd.conf owner=root group=root mode=0600 force=yes

@@ -50,7 +50,7 @@
   failed_when: check_my_account_entry_entry.rc not in [0, 1]
 
 - name: generate a password hash for my account
-  command: /usr/sbin/slappasswd -h "{CRYPT}" -s {{ my_password }}
+  command: /usr/sbin/slappasswd -h "{SSHA}" -s {{ my_password }}
   register: my_account_password_hash
 
 - name: copy ldif file to add users data
