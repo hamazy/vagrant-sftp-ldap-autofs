@@ -9,3 +9,5 @@ domain_suffix: dc={{ subdomain }},dc={{ topdomain }}
 domain_root_dn: cn={{ domain_root_cn }},{{ domain_suffix }}
 
 my_group: sftpusers
+
+allowed_network_address: "192.168.24.0/24"

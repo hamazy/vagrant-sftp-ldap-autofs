@@ -24,3 +24,12 @@
 - name: put my public key to authorized_key
   authorized_key: user=vagrant
                   key="ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDRBdTxEPqF4NTBocTcVipsrXqVXPpM8ZfUxK2/SlYh2hLefPAnfz4eFw72dRUG8JnXpvQu1de9DCKL9s51XbZZ0B1Clbvn8Rx9f4zhK+SReFRk4E1jLPnZKwrfK0/wb723QidLDYpNAtE7wWKY/JyMcfhteLLf+MpmbM/LJgPsrPsSOIIw3xOqWhOLQWe6wPHgGLKLisR+yGMSDi6l3EzpdKRxRQJMot3u0rY4yLlf5YEIgXPWwZVlAHVV7hFlQCZwsBcs2EPKZ/bEodvAdzGKsiBWvuJOGpbOKewYkuW3ws5CKXIXj6eRrTjM2Uey9ab/o2LLHpiDrwytPrk/ho69 hamazy@Suguru-Hamazakis-MacBook-Air-2.local"
+
+- name: build hosts file
+  lineinfile: dest=/etc/hosts regexp='.*{{ item.hostname }}.*' line="{{ item.address }} {{ item.hostname }}" state=present
+  when: item.hostname != ansible_hostname
+  with_items:
+    - { hostname: "ldap1.local", address: "192.168.24.100" }
+    - { hostname: "ldap2.local", address: "192.168.24.101" }
+    - { hostname: "sftp.local", address: "192.168.24.102" }
+    - { hostname: "web.local", address: "192.168.24.103" }

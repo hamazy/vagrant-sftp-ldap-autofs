@@ -128,7 +128,7 @@ bindpw {{ domain_rootdn_password }}
 uid nslcd
 gid ldap
 # This comment prevents repeated auto-migration of settings.
-uri ldap://{{ hostvars['ldap1']['ansible_default_ipv4']['address'] }}:389 ldap://{{ hostvars['ldap2']['ansible_default_ipv4']['address'] }}:389
+uri ldap://ldap1.local:389 ldap://ldap2.local:389
 base {{ domain_suffix }}
 ssl no
 tls_cacertdir /etc/openldap/cacerts

@@ -9,7 +9,7 @@
     - autofs
 
 - name: configurate authentication
-  command: /usr/sbin/authconfig --update --enableldap --enableldapauth --ldapserver=ldap://{{ hostvars['ldap1']['ansible_default_ipv4']['address'] }}:389,ldap://{{ hostvars['ldap2']['ansible_default_ipv4']['address'] }}:389 --ldapbasedn={{ domain_suffix }} --enablemkhomedir
+  command: /usr/sbin/authconfig --update --enableldap --enableldapauth --ldapserver=ldap://ldap1.local:389,ldap://ldap2.local:389 --ldapbasedn={{ domain_suffix }} --enablemkhomedir
 
 - name: copy nslcd.conf
   template: src=nslcd.conf.j2 dest=/etc/nslcd.conf owner=root group=root mode=0600 force=yes

@@ -74,10 +74,10 @@ nisMapEntry: auto.{{ my_group }}
 {% endif %}
 
 {% if check_my_account_entry_entry.rc == 1 %}
-# {{ my_account }} -fstype=nfs4,rw {{ hostvars['web']['ansible_default_ipv4']['address'] }}:/var/www/html
+# {{ my_account }} -fstype=nfs4,rw web.local:/var/www/html
 dn: cn={{ my_account }},nisMapName=auto.{{ my_group }},{{ domain_suffix }}
 objectClass: nisObject
 cn: {{ my_account }}
 nisMapName: auto.{{ my_group }}
-nisMapEntry: -fstype=nfs4,rw {{ hostvars['web']['ansible_default_ipv4']['address'] }}:/var/www/html
+nisMapEntry: -fstype=nfs4,rw web.local:/var/www/html
 {% endif %}

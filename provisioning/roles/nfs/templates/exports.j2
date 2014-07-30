@@ -1,1 +1,1 @@
-/var/www/html {{ hostvars['sftp']['ansible_default_ipv4']['address']  }}(sync,rw,all_squash,anonuid=48,anongid=48)
+/var/www/html {{ allowed_network_address }}(sync,rw,all_squash,anonuid=48,anongid=48)

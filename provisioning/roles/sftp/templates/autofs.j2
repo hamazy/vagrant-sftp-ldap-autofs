@@ -72,7 +72,7 @@ MOUNT_NFS_DEFAULT_PROTOCOL=4
 #	     the minimum ttl found in the SRV RR records or
 #	     after one hour, whichever is less.
 #
-LDAP_URI="ldap://{{ hostvars['ldap1']['ansible_default_ipv4']['address'] }}:389 ldap://{{ hostvars['ldap2']['ansible_default_ipv4']['address'] }}:389"
+LDAP_URI="ldap://ldap1.local:389 ldap://ldap2.local:389"
 #
 # LDAP__TIMEOUT - timeout value for the synchronous API  calls
 #		  (default is LDAP library default).
